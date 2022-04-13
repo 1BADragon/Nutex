@@ -4,7 +4,7 @@
 
 #include <nutex.hpp>
 
-nu::SpinLock<int> val(0);
+nu::Lock<int, nu::SpinLock> val(0);
 
 void thread_entry() {
     auto locked = val.lock();

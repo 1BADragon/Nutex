@@ -7,10 +7,11 @@
 
 namespace nu {
 
-template <typename T>
+template <typename T, typename MutexType = std::mutex>
 class Lock {
 public:
     using value_type = T;
+    using ref_type = LockRef<Lock<T, MutexType>>;
 
     template<typename ...Args>
     Lock(Args ...args)
@@ -23,17 +24,17 @@ public:
         auto ref = this->lock();
     }
 
-    LockRef<Lock<T>> lock()
+    ref_type lock()
     {
         _mut.lock();
 
-        return LockRef<Lock<T>>(this, &_val);
+        return ref_type(this, &_val);
     }
 
-    std::optional<LockRef<Lock<T>>> try_lock()
+    std::optional<ref_type> try_lock()
     {
         if (_mut.try_lock()) {
-            return LockRef<Lock<T>>(this, &_val);
+            return ref_type(this, &_val);
         }
 
         return std::nullopt;
@@ -42,9 +43,9 @@ public:
 
 private:
     T _val;
-    std::mutex _mut;
+    MutexType _mut;
 
-    friend class LockRef<Lock<T>>;
+    friend ref_type;
 
     void unlock() {
         _mut.unlock();
